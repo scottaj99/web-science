@@ -8,10 +8,12 @@ import pymongo
 from collections import Counter
 import itertools
 
+#configure db
 client = pymongo.MongoClient('localhost', 27017)
 db = client.Stream
 tweets = db.football_stream
 
+#method to get every hashtag used in a tweet
 def get_hashtags(row):
     user = row['hashtags']
     hashtags=[]
@@ -21,9 +23,11 @@ def get_hashtags(row):
     return user, hashtags
 
 
-
+#Normalise data to allow the use of it
 tweets_df = pd.json_normalize(tweets.find({}).limit(50000), max_level=2)
+#declare graph
 graph = nx.Graph()
+#for loop which takes each tweet, and creates an edge on the graph between each of the hashtags which appear together in the tweet
 for index, tweet in tweets_df.iterrows():
     user, hashtags = get_hashtags(tweet)
     #tweet_id = tweet['_id']
@@ -35,6 +39,8 @@ for index, tweet in tweets_df.iterrows():
         graph.add_node(hashtags[0])
         #graph.nodes()["name"] = user
         #graph.nodes()["name"] = mention
+
+#Print analysis information once graph is complete
 print(f"Graph has {graph.number_of_nodes()} nodes and {graph.number_of_edges()} edges.")
 degrees = [val for (node, val) in graph.degree()]
 print(f"The maximum degree of the Graph is {np.max(degrees)}")
@@ -42,6 +48,8 @@ print(f"The minimum degree of the Graph is {np.min(degrees)}")
 print(f"The average degree of the nodes in the Graph is {np.mean(degrees):.1f}")
 print(f"The most frequent degree of the nodes found in the Graph is {stats.mode(degrees)[0][0]}")
 #print(graph.nodes())
+
+#Draws graph and saves it to a .png file
 pos = nx.spring_layout(graph, k=0.15)
 plt.figure()
 nx.draw(graph, pos=pos, edge_color="black", linewidths=0.05,

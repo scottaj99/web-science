@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import networkx as nx
 import pymongo
 
+
 client = pymongo.MongoClient('localhost', 27017)
 db = client.Stream
 tweets = db.secondary_stream
@@ -58,15 +59,14 @@ def get_in_reply(tweet):
 
 
 
-print("=== Getting Database And Flattening ===")
+#get tweets, defsult limit to 10000
 tweets_df = tweets.find().limit(10000)
-
+#declare three seperate graphs
 Replygraph = nx.Graph()
 Quotegraph = nx.Graph()
 RetweetGraph = nx.Graph()
 
-print("=== Getting Interactions ===")
-
+#Print statistics of the graph then draw it and save it to a png image file
 def graphData(graph, graphName):
     print(f"There are {graph.number_of_nodes()} nodes and {graph.number_of_edges()} edges present in the Graph")
 
@@ -85,6 +85,7 @@ def graphData(graph, graphName):
     plt.savefig(f'{graphName}.png')
     plt.show()
 
+#For each tweets get their replies, quote tweets and retweets and draw an edge between the users this connects them to
 for tweet in tweets_df:
     #print (tweet)
     if get_in_reply(tweet)!=None:
@@ -96,12 +97,8 @@ for tweet in tweets_df:
     if get_retweets(tweet) != None:
         user, interaction = get_retweets(tweet)
         RetweetGraph.add_edge(user, interaction)
-    
+#call graphData method for each of the three graphs   
 graphData(Replygraph, 'ReplyGraph')
 graphData(Quotegraph, 'QuoteGraph')
 graphData(RetweetGraph, 'RetweetGraph')
 
-        # graph.nodes()[user_id]["name"] = user_name
-        # graph.nodes()[int_id]["name"] = int_name
-
-print("=== Graph Data ===")
